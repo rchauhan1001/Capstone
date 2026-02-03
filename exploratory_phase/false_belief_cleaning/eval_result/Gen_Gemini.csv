@@ -1,0 +1,301 @@
+id,benchmark_id,pred,gold,correct,raw_response
+0,1,A,A,True,"{
+  ""pred"": ""A""
+}"
+1,2,B,B,True,"{
+  ""pred"": ""B""
+}"
+2,3,A,A,True,"{
+  ""pred"": ""A""
+}"
+3,4,C,D,False,"{
+  ""pred"": ""C""
+}"
+4,5,A,B,False,"{
+  ""pred"": ""A""
+}"
+5,6,B,B,True,"{
+  ""pred"": ""B""
+}"
+6,1,D,D,True,"{
+  ""pred"": ""D""
+}"
+7,2,A,A,True,"{
+  ""pred"": ""A""
+}"
+8,3,A,A,True,"{
+  ""pred"": ""A""
+}"
+9,4,A,A,True,"{
+  ""pred"": ""A""
+}"
+10,5,C,D,False,"{
+  ""pred"": ""C""
+}"
+11,6,A,A,True,"{
+  ""pred"": ""A""
+}"
+12,1,C,C,True,"{
+  ""pred"": ""C""
+}"
+13,2,D,D,True,"{
+  ""pred"": ""D""
+}"
+14,3,B,B,True,"{
+  ""pred"": ""B""
+}"
+15,4,C,A,False,"{
+  ""pred"": ""C""
+}"
+16,5,C,D,False,"{
+  ""pred"": ""C""
+}"
+17,6,A,B,False,"{
+  ""pred"": ""A""
+}"
+18,1,D,D,True,"{
+  ""pred"": ""D""
+}"
+19,2,D,D,True,"{
+  ""pred"": ""D""
+}"
+20,3,C,C,True,"{
+  ""pred"": ""C""
+}"
+21,4,A,D,False,"{
+  ""pred"": ""A""
+}"
+22,5,D,B,False,"{
+  ""pred"": ""D""
+}"
+23,6,B,B,True,"{
+  ""pred"": ""B""
+}"
+24,1,B,B,True,"{
+  ""pred"": ""B""
+}"
+25,2,B,B,True,"{
+  ""pred"": ""B""
+}"
+26,3,D,D,True,"{
+  ""pred"": ""D""
+}"
+27,4,D,C,False,"{
+  ""pred"": ""D""
+}"
+28,5,A,B,False,"{
+  ""pred"": ""A""
+}"
+29,6,C,D,False,"{
+  ""pred"": ""C""
+}"
+30,1,A,A,True,"{
+  ""pred"": ""A""
+}"
+31,2,C,C,True,"{
+  ""pred"": ""C""
+}"
+32,3,D,D,True,"{
+  ""pred"": ""D""
+}"
+33,4,C,C,True,"{
+  ""pred"": ""C""
+}"
+34,5,A,D,False,"{
+  ""pred"": ""A""
+}"
+35,6,D,C,False,"{
+  ""pred"": ""D""
+}"
+36,1,C,C,True,"{
+  ""pred"": ""C""
+}"
+37,2,B,B,True,"{
+  ""pred"": ""B""
+}"
+38,3,A,A,True,"{
+  ""pred"": ""A""
+}"
+39,4,D,D,True,"{
+  ""pred"": ""D""
+}"
+40,5,A,C,False,"{
+  ""pred"": ""A""
+}"
+41,6,C,C,True,"{
+  ""pred"": ""C""
+}"
+42,1,D,D,True,"{
+  ""pred"": ""D""
+}"
+43,2,C,C,True,"{
+  ""pred"": ""C""
+}"
+44,3,A,A,True,"{
+  ""pred"": ""A""
+}"
+45,4,B,A,False,"{
+  ""pred"": ""B""
+}"
+46,5,D,B,False,"{
+  ""pred"": ""D""
+}"
+47,6,A,A,True,"{
+  ""pred"": ""A""
+}"
+48,1,B,B,True,"{
+  ""pred"": ""B""
+}"
+49,2,B,B,True,"{
+  ""pred"": ""B""
+}"
+50,3,C,C,True,"{
+  ""pred"": ""C""
+}"
+51,4,A,C,False,"{
+  ""pred"": ""A""
+}"
+52,5,C,D,False,"{
+  ""pred"": ""C""
+}"
+53,6,B,B,True,"{
+  ""pred"": ""B""
+}"
+54,1,A,A,True,"{
+  ""pred"": ""A""
+}"
+55,2,B,B,True,"{
+  ""pred"": ""B""
+}"
+56,3,B,B,True,"{
+  ""pred"": ""B""
+}"
+57,4,A,B,False,"{
+  ""pred"": ""A""
+}"
+58,5,C,D,False,"{
+  ""pred"": ""C""
+}"
+59,6,D,C,False,"{
+  ""pred"": ""D""
+}"
+60,1,C,C,True,"{
+  ""pred"": ""C""
+}"
+61,2,C,C,True,"{
+  ""pred"": ""C""
+}"
+62,3,D,D,True,"{
+  ""pred"": ""D""
+}"
+63,4,D,B,False,"{
+  ""pred"": ""D""
+}"
+64,5,A,A,True,"{
+  ""pred"": ""A""
+}"
+65,6,A,A,True,"{
+  ""pred"": ""A""
+}"
+66,1,B,B,True,"{
+  ""pred"": ""B""
+}"
+67,2,B,B,True,"{
+  ""pred"": ""B""
+}"
+68,3,B,B,True,"{
+  ""pred"": ""B""
+}"
+69,4,D,B,False,"{
+  ""pred"": ""D""
+}"
+70,5,B,A,False,"{
+  ""pred"": ""B""
+}"
+71,6,C,D,False,"{
+  ""pred"": ""C""
+}"
+72,1,A,C,False,"{
+  ""pred"": ""A""
+}"
+73,2,D,D,True,"{
+  ""pred"": ""D""
+}"
+74,3,A,A,True,"{
+  ""pred"": ""A""
+}"
+75,4,C,C,True,"{
+  ""pred"": ""C""
+}"
+76,5,B,D,False,"{
+  ""pred"": ""B""
+}"
+77,6,C,C,True,"{
+  ""pred"": ""C""
+}"
+78,1,A,A,True,"{
+  ""pred"": ""A""
+}"
+79,2,C,C,True,"{
+  ""pred"": ""C""
+}"
+80,3,C,C,True,"{
+  ""pred"": ""C""
+}"
+81,4,C,C,True,"{
+  ""pred"": ""C""
+}"
+82,5,B,B,True,"{
+  ""pred"": ""B""
+}"
+83,6,C,C,True,"{
+  ""pred"": ""C""
+}"
+84,1,C,C,True,"{
+  ""pred"": ""C""
+}"
+85,2,D,D,True,"{
+  ""pred"": ""D""
+}"
+86,3,B,B,True,"{
+  ""pred"": ""B""
+}"
+87,4,C,C,True,"{
+  ""pred"": ""C""
+}"
+88,5,D,A,False,"{
+  ""pred"": ""D""
+}"
+89,6,A,A,True,"{
+  ""pred"": ""A""
+}"
+90,1,C,C,True,"{
+  ""pred"": ""C""
+}"
+91,2,D,D,True,"{
+  ""pred"": ""D""
+}"
+92,3,D,D,True,"{
+  ""pred"": ""D""
+}"
+93,4,D,C,False,"{
+  ""pred"": ""D""
+}"
+94,5,B,C,False,"{
+  ""pred"": ""B""
+}"
+95,6,A,A,True,"{
+  ""pred"": ""A""
+}"
+96,1,C,C,True,"{
+  ""pred"": ""C""
+}"
+97,2,C,C,True,"{
+  ""pred"": ""C""
+}"
+98,3,C,C,True,"{
+  ""pred"": ""C""
+}"
+99,4,D,D,True,"{
+  ""pred"": ""D""
+}"
