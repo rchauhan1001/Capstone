@@ -6,4 +6,5 @@ socialiqa-train-dev
 
 metamind_fork/results
 
-metamind_fork/config.py
+metamind_fork/config.pymetamind_fork/config.py
+__pycache__/
