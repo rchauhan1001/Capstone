@@ -165,7 +165,8 @@ class SocialMemory:
             emotions=emos_str,
             history=hist_str
         )
-        
+        if not preferences_summary_obj and not emotions_summary_obj and not interactions_summary_obj:
+            return "No user preferences, emotional markers, or interaction history available."
         try:
             llm_summary = self.llm.generate(prompt, max_tokens=200) # Adjust max_tokens
             return llm_summary.strip()
