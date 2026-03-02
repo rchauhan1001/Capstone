@@ -15,7 +15,7 @@ import argparse
 import logging
 
 from config import TOM_AGENT_CONFIG, DOMAIN_AGENT_CONFIG, RESPONSE_AGENT_CONFIG
-from llm_interface import LocalVLLM
+from llm_interface import DirectVLLM
 from memory import SocialMemory
 from agents import ToMAgent, DomainAgent, ResponseAgent
 from utils.helpers import setup_logger
@@ -25,11 +25,11 @@ logger = setup_logger("SocialIQA_Cluster", level=logging.INFO)
 SCRATCH = os.environ.get("SCRATCH", f"/scratch/{os.environ.get('USER', 'laredo.ei')}")
 
 LOCAL_LLM_CONFIG = {
-    "base_url": "http://127.0.0.1:8000/v1",
+    "model_path": f"{SCRATCH}/models/gpt-oss-120b-hf",   # ADD THIS
     "model_name": "openai/gpt-oss-120b",
-    "api_key": "not-needed",
     "default_max_tokens": 2048,
     "default_temperature": 0.7,
+    "enforce_eager": True,
     "log_path": os.path.join(SCRATCH, "results", f"inference_log_{time.strftime('%Y%m%d_%H%M%S')}.jsonl"),
 }
 
@@ -83,14 +83,14 @@ def run(args):
     summary_path = os.path.join(args.output_dir, f"summary_{timestamp}.json")
 
     logger.info("Initializing MetaMind pipeline with local vLLM...")
-    llm = LocalVLLM(LOCAL_LLM_CONFIG)
+    llm = DirectVLLM(LOCAL_LLM_CONFIG)
 
     social_memory = SocialMemory(llm_interface=llm)
     tom_agent = ToMAgent(llm_interface=llm, social_memory_interface=social_memory, config=TOM_AGENT_CONFIG)
     domain_agent = DomainAgent(llm_interface=llm, social_memory_interface=social_memory, config=DOMAIN_AGENT_CONFIG)
     response_agent = ResponseAgent(llm_interface=llm, config=RESPONSE_AGENT_CONFIG)
 
-    logger.info(f"Model: {LOCAL_LLM_CONFIG['model_name']} @ {LOCAL_LLM_CONFIG['base_url']}")
+    logger.info(f"Model: {LOCAL_LLM_CONFIG['model_name']} @ {LOCAL_LLM_CONFIG['model_path']}")
     logger.info(f"Inference log: {LOCAL_LLM_CONFIG['log_path']}")
     logger.info(f"Results: {results_path}")
 
