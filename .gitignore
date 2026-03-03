@@ -10,4 +10,4 @@ metamind_fork/config.pymetamind_fork/config.py
 __pycache__/
 __pycache__/
 
-.env.env
+.env
