@@ -26,6 +26,7 @@ class OpenAILLM(BaseLLM):
         self.model_name = self.config.get("model_name", "gpt-3.5-turbo")
         self.default_max_tokens = self.config.get("default_max_tokens", 1024)
         self.default_temperature = self.config.get("default_temperature", 0.7)
+        self.call_count = 0
 
     def generate(self, prompt: str, **kwargs) -> str:
         """
@@ -50,6 +51,8 @@ class OpenAILLM(BaseLLM):
                 max_tokens=max_tokens,
                 **{k: v for k, v in kwargs.items() if k not in ["max_tokens", "temperature"]}
             )
+            self.call_count += 1
+
             return response.choices[0].message.content.strip()
         except Exception as e:
             print(f"[OpenAILLM] Error during API call: {e}")

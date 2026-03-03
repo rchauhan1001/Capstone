@@ -8,5 +8,6 @@ metamind_fork/results
 
 metamind_fork/config.pymetamind_fork/config.py
 __pycache__/
-metamind_fork/config.py
 __pycache__/
+
+.env.env

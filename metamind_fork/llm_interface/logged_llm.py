@@ -4,6 +4,7 @@ import os
 from typing import Dict, Any
 from .base_llm import BaseLLM
 
+from dotenv import load_dotenv
 
 class LoggedLLM(BaseLLM):
     """

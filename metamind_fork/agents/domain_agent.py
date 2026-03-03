@@ -2,6 +2,7 @@ from typing import Dict, List, Any, Tuple
 import math # For log in information gain calculation
 from .base_agent import BaseAgent
 from prompts.prompt_templates import DOMAIN_AGENT_PROMPTS
+import re
 
 class DomainAgent(BaseAgent):
     """
@@ -128,7 +129,7 @@ class DomainAgent(BaseAgent):
             C_t=formatted_context,
             M_t=social_memory_summary
         )
-        response = self.llm.generate(prompt)
+        response = self.llm.generate(prompt, max_tokens = 50)
         probability = self._parse_probability_response(response)
         return probability
 
@@ -142,7 +143,7 @@ class DomainAgent(BaseAgent):
             h_tilde_i_explanation=hypothesis["explanation"],
             h_tilde_i_type=hypothesis["type"]
         )
-        response = self.llm.generate(prompt)
+        response = self.llm.generate(prompt, max_tokens = 50)
         probability = self._parse_probability_response(response)
         return probability
     def _parse_probability_response(self, llm_response: str) -> float:
@@ -162,7 +163,12 @@ class DomainAgent(BaseAgent):
         - Revised Hypothesis: ...
         - Modification Log: ...
         """
+        match = re.search(r'Revised Hypothesis Explanation:\s*(.+?)(?=Revised Hypothesis Type:|Modification Log:|$)', llm_response, re.IGNORECASE | re.DOTALL)
+        if match:
+            explanation = match.group(1).strip()
+        else:
+            explanation = llm_response.strip()[-300:]
         return {
-            "explanation": "Parsed refined explanation: " + llm_response,
+            "explanation": explanation,
             "modification_log": {"parsed_log": "details..."}
         }

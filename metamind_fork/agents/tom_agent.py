@@ -1,6 +1,7 @@
 from typing import Dict, List, Any, Optional, Tuple
 from .base_agent import BaseAgent
 from prompts.prompt_templates import TOM_AGENT_PROMPTS
+import re
 
 class ToMAgent(BaseAgent):
     """
@@ -48,7 +49,7 @@ class ToMAgent(BaseAgent):
                 T_focus=current_focus_type 
             )
             
-            raw_hypothesis_data = self.llm.generate(prompt)
+            raw_hypothesis_data = self.llm.generate(prompt, max_tokens=500)
             parsed_hypothesis = self._parse_hypothesis_generation(raw_hypothesis_data, i, expected_type=current_focus_type)
             if parsed_hypothesis:
                 hypotheses.append(parsed_hypothesis)
@@ -91,7 +92,11 @@ class ToMAgent(BaseAgent):
             if "explanation" not in hypothesis_data:
                 # If parsing fails to find description, use the whole response as description
                 # and try to infer type or use expected_type
-                hypothesis_data["explanation"] = llm_response.strip()
+                match = re.search(r'Description:\s*(.+?)(?=Type:|$)', llm_response, re.IGNORECASE | re.DOTALL)
+                if match:
+                    hypothesis_data["explanation"] = match.group(1).strip()
+                else:
+                    hypothesis_data["explanation"] = llm_response.strip()[-300:]
             
             if "type" not in hypothesis_data and expected_type:
                 hypothesis_data["type"] = expected_type
