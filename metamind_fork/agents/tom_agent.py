@@ -49,7 +49,7 @@ class ToMAgent(BaseAgent):
                 T_focus=current_focus_type 
             )
             
-            raw_hypothesis_data = self.llm.generate(prompt, max_tokens=500)
+            raw_hypothesis_data = self.llm.generate(prompt, max_tokens=1000)
             parsed_hypothesis = self._parse_hypothesis_generation(raw_hypothesis_data, i, expected_type=current_focus_type)
             if parsed_hypothesis:
                 hypotheses.append(parsed_hypothesis)

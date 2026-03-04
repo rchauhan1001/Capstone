@@ -65,7 +65,8 @@ class DirectVLLM(BaseLLM):
             # Changed outputs to use GPT formatting, hopefully to force acknolwedgment of only reasoning contents
             outputs = self.llm.chat([{"role": "system", "content": "You are a precise reasoning engine. You receive tasks and produce only the requested output — nothing more. You never narrate, plan, or describe your process. You never begin with phrases like 'we need to', 'analysis', 'let me', or 'the task is'. You simply reason and output."}, 
             {"role": "user", "content": prompt}], sampling_params)
-            content = outputs[0].outputs[0].text.strip()
+            raw = outputs[0].outputs[0].text.strip()
+            content = raw.split("assistantfinal")[-1].strip() if "assistantfinal" in raw else raw
             finish_reason = outputs[0].outputs[0].finish_reason
 
             elapsed = time.time() - start_time
@@ -76,6 +77,7 @@ class DirectVLLM(BaseLLM):
                 "status": "success",
                 "elapsed_seconds": round(elapsed, 3),
                 "response_content": content,
+                "raw_response": raw,
                 "finish_reason": finish_reason,
                 "usage": {
                     "prompt_tokens": prompt_tokens,
