@@ -61,7 +61,10 @@ class DirectVLLM(BaseLLM):
                 temperature=temperature,
                 max_tokens=max_tokens,
             )
-            outputs = self.llm.generate([prompt], sampling_params)
+            # outputs = self.llm.generate([prompt], sampling_params)
+            # Changed outputs to use GPT formatting, hopefully to force acknolwedgment of only reasoning contents
+            outputs = self.llm.chat([{"role": "system", "content": "You are a precise reasoning engine. You receive tasks and produce only the requested output — nothing more. You never narrate, plan, or describe your process. You never begin with phrases like 'we need to', 'analysis', 'let me', or 'the task is'. You simply reason and output."}, 
+            {"role": "user", "content": prompt}], sampling_params)
             content = outputs[0].outputs[0].text.strip()
             finish_reason = outputs[0].outputs[0].finish_reason
 

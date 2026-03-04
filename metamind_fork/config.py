@@ -8,7 +8,7 @@ load_dotenv(Path(__file__).parent.parent / ".env")
 
 # LLM API settings
 LLM_CONFIG = {
-    "api_key": os.environ["OPENAI_API_KEY"],
+    "api_key": os.environ.get("OPENAI_API_KEY", "not-needed"),
     "base_url": "https://api.openai.com/v1",
     "model_name": "gpt-4o",
     "temperature": 0.7,
@@ -31,7 +31,7 @@ DOMAIN_AGENT_CONFIG = {
 # Response Agent settings
 RESPONSE_AGENT_CONFIG = {
     "beta": 0.8,  # Trade-off weight for empathy vs coherence
-    "utility_threshold": 0.9,  # Threshold for acceptable utility score
+    "utility_threshold": 0.8,  # Threshold for acceptable utility score
     "max_revisions": 3  # Maximum number of response revisions
 }
 

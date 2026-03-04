@@ -64,7 +64,7 @@ class DomainAgent(BaseAgent):
             domain_rule_type="Cultural",
             constraint_specifications=str(domain_rules.get("cultural", []))
         )
-        response = self.llm.generate(prompt)
+        response = self.llm.generate(prompt, max_tokens=800)
         refined_data = self._parse_refinement_response(response)
         hypothesis.update(refined_data) # Update hypothesis with refined explanation, etc.
         print(f"[DomainAgent] Refining hypothesis: {hypothesis.get('id')}")

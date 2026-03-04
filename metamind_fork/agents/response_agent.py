@@ -1,6 +1,7 @@
 from typing import Dict, List, Any, Optional, Tuple
 from .base_agent import BaseAgent
 from prompts.prompt_templates import RESPONSE_AGENT_PROMPTS
+import re
 
 class ResponseAgent(BaseAgent):
     """
@@ -150,30 +151,54 @@ class ResponseAgent(BaseAgent):
         Expected to contain at least a 'utility' score and optionally 'critique', 'empathy', 'coherence'.
         Example LLM output: "Utility: 0.85\nCritique: A bit too formal.\nEmpathy: 0.9\nCoherence: 0.8"
         """
+        # results = {"utility": 0.0, "critique": "Parsing failed.", "empathy": 0.0, "coherence": 0.0}
+        # try:
+        #     lines = llm_response.strip().split('\n')
+        #     for line in lines:
+        #         if ":" in line:
+        #             key, value = line.split(":", 1)
+        #             key = key.strip().lower()
+        #             value = value.strip()
+        #             if key == "utility":
+        #                 results["utility"] = float(value)
+        #             elif key == "critique":
+        #                 results["critique"] = value
+        #             elif key == "empathy":
+        #                 results["empathy"] = float(value)
+        #             elif key == "coherence":
+        #                 results["coherence"] = float(value)
+        #     if "utility" not in [k.strip().lower() for k in results.keys() if isinstance(results[k], float)] and results["empathy"] > 0 and results["coherence"] > 0:
+        #          # Check if empathy and coherence were successfully parsed as floats
+        #         if isinstance(results["empathy"], float) and isinstance(results["coherence"], float):
+        #             results["utility"] = (self.beta * results["empathy"]) + ((1 - self.beta) * results["coherence"])
+
+        # except Exception as e:
+        #     print(f"[ResponseAgent] Error parsing validation results: {e}\nResponse: {llm_response}")
+        #     results["utility"] = 0.1 
+        #     results["critique"] = f"Error parsing validation: {e}"
+        
+        # return results
+        
+
+
+        # REGEX attempt to hopeflly fix a parsing issue. 
         results = {"utility": 0.0, "critique": "Parsing failed.", "empathy": 0.0, "coherence": 0.0}
         try:
-            lines = llm_response.strip().split('\n')
-            for line in lines:
-                if ":" in line:
-                    key, value = line.split(":", 1)
-                    key = key.strip().lower()
-                    value = value.strip()
-                    if key == "utility":
-                        results["utility"] = float(value)
-                    elif key == "critique":
-                        results["critique"] = value
-                    elif key == "empathy":
-                        results["empathy"] = float(value)
-                    elif key == "coherence":
-                        results["coherence"] = float(value)
-            if "utility" not in [k.strip().lower() for k in results.keys() if isinstance(results[k], float)] and results["empathy"] > 0 and results["coherence"] > 0:
-                 # Check if empathy and coherence were successfully parsed as floats
-                if isinstance(results["empathy"], float) and isinstance(results["coherence"], float):
-                    results["utility"] = (self.beta * results["empathy"]) + ((1 - self.beta) * results["coherence"])
+            for field, key in [("utility", "utility"), ("empathy", "empathy"), ("coherence", "coherence")]:
+                match = re.search(rf'{field}:\s*([0-9]*\.?[0-9]+)', llm_response, re.IGNORECASE)
+                if match:
+                    results[key] = float(match.group(1))
+            
+            critique_match = re.search(r'Critique:\s*(.+?)(?=Empathy:|Coherence:|Utility:|$)', llm_response, re.IGNORECASE | re.DOTALL)
+            if critique_match:
+                results["critique"] = critique_match.group(1).strip()
+
+            if results["utility"] == 0.0 and results["empathy"] > 0 and results["coherence"] > 0:
+                results["utility"] = (self.beta * results["empathy"]) + ((1 - self.beta) * results["coherence"])
 
         except Exception as e:
             print(f"[ResponseAgent] Error parsing validation results: {e}\nResponse: {llm_response}")
-            results["utility"] = 0.1 
+            results["utility"] = 0.1
             results["critique"] = f"Error parsing validation: {e}"
         
         return results

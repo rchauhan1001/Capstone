@@ -7,7 +7,7 @@ Input:
 - Conversational context (C_t):
 {C_t}
 Objective:
-Generate 3-5 commonsense interpretations of the user’s unstated needs by:
+Generate 3-5 commonsense interpretations of the user's unstated needs by:
 1. Identifying key semantic triggers in the utterance.
 2. Mapping these triggers to plausible psychosocial motivations.
 3. Considering cultural and linguistic norms for indirect communication.
@@ -41,7 +41,7 @@ Output Format:
 - Primary Marker: [Belief/Desire/Intention/Emotion/Thought] (Confidence: [Percentage])
   Rationale: [Psychological justification]
 """,
-    "mental_state_hypothesis_generation": """  # Renamed from mental_state_space_planning for clarity
+    "mental_state_hypothesis_generation": """
 Generate Mental State Hypothesis Task
 
 Objective: Based on the user's input, conversation context, and social memory, generate a plausible mental state hypothesis. Focus on the mental state type: {T_focus}.
@@ -59,7 +59,7 @@ Instructions:
 2.  Formulate a hypothesis about the user's mental state, specifically aligning with the target type {T_focus}.
 3.  The hypothesis should be a concise explanation.
 
-Output Format (Strictly follow this format):
+IMPORTANT: Output ONLY these two fields. No other text:
 Type: [The {T_focus} type, e.g., Belief, Desire, Intention, Emotion, Thought]
 Description: [A 1-2 sentence natural language explanation of the hypothesis]
 """
@@ -101,8 +101,7 @@ Inputs:
 - Social Memory Summary (M_t):
 {M_t}
 
-Output Format (Return only the score):
-[A single float number between 0.0 and 1.0]
+IMPORTANT: Output ONLY a single float number between 0.0 and 1.0. No other text.
 """,
     "prior_probability": """
 Estimate Prior Plausibility (P_prior) Task
@@ -113,8 +112,7 @@ Inputs:
 - Refined Hypothesis Explanation (h_tilde_i_explanation): {h_tilde_i_explanation}
 - Refined Hypothesis Type (h_tilde_i_type): {h_tilde_i_type}
 
-Output Format (Return only the score):
-[A single float number between 0.0 and 1.0]
+IMPORTANT: Output ONLY a single float number between 0.0 and 1.0. No other text.
 """
 }
 
@@ -132,8 +130,8 @@ Inputs:
 - Social Memory Summary (M_t):
 {M_t}
 
-Output Format (Return only the generated response text):
-[Your empathetic and coherent response here]
+IMPORTANT: Output ONLY the response text. Do not analyze the prompt, output metadata, or explain your reasoning process. 
+Begin directly with your reasoning about the social situation and end with "ANSWER: <letter>".
 """,
     "response_validation": """
 Response Validation Task
@@ -151,17 +149,11 @@ Inputs:
 {M_t}
 - Beta (Weight for Empathy vs. Coherence): {beta}
 
-Task: Evaluate the response and provide:
-1.  Empathy Score (0.0-1.0): How well the response resonates with the user's inferred emotional or cognitive state ({h_tilde_explanation}).
-2.  Coherence Score (0.0-1.0): Consistency with conversational context ({C_t}) and task constraints.
-3.  Overall Utility Score: Calculated as {beta} * Empathy + (1-{beta}) * Coherence. (You don't need to calculate this, just provide Empathy and Coherence scores).
-4.  Critique: Brief textual feedback on why the response is good or how it could be improved.
-
-Output Format (Strictly follow this format, each on a new line):
-Empathy: [A single float number between 0.0 and 1.0]
-Coherence: [A single float number between 0.0 and 1.0]
-Utility: [A single float number between 0.0 and 1.0, calculated as {beta} * Empathy + (1-{beta}) * Coherence]
-Critique: [Your brief textual feedback]
+IMPORTANT: Output ONLY these four fields, each on a new line. No other text:
+Empathy: [float 0.0-1.0]
+Coherence: [float 0.0-1.0]
+Utility: [float 0.0-1.0]
+Critique: [one sentence max]
 """,
     "response_optimization": """
 Response Optimization Task
@@ -179,9 +171,6 @@ Inputs:
 - Social Memory Summary (M_t):
 {M_t}
 
-Task: Revise the original response based on the critique.
-
-Output Format (Return only the optimized response text):
-[Your optimized response here]
+IMPORTANT: Output ONLY the response text. Do not analyze the prompt, output metadata, or explain your reasoning process. Begin directly with your reasoning about the social situation and end with "ANSWER: <letter>".
 """
 }
