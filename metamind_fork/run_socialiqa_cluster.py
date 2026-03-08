@@ -25,12 +25,14 @@ logger = setup_logger("SocialIQA_Cluster", level=logging.INFO)
 SCRATCH = os.environ.get("SCRATCH", f"/scratch/{os.environ.get('USER', 'laredo.ei')}")
 
 LOCAL_LLM_CONFIG = {
-    "model_path": f"{SCRATCH}/models/gpt-oss-120b-hf",   # ADD THIS
-    "model_name": "openai/gpt-oss-120b",
+    # "model_path": f"{SCRATCH}/models/gpt-oss-120b-hf",   # ADD THIS
+    # "model_name": "openai/gpt-oss-120b",
+    "model_path": f"{SCRATCH}/models/gpt-oss-20b-hf",
+    "model_name": "openai/gpt-oss-20b",
     "default_max_tokens": 2048,
     "default_temperature": 0.7,
     "enforce_eager": True,
-    "log_path": os.path.join(SCRATCH, "results", f"inference_log_{time.strftime('%Y%m%d_%H%M%S')}.jsonl"),
+    "log_path": os.path.join(SCRATCH, "results", f"inference_log_{time.strftime('%Y%m%d_%H%M%S')}_s{os.environ.get('START_SAMPLE', '1')}.jsonl"),
 }
 
 DEFAULT_DEV_PATH = os.path.join(SCRATCH, "socialiqa-train-dev", "dev.jsonl")
@@ -79,8 +81,11 @@ def run(args):
     timestamp = time.strftime('%Y%m%d_%H%M%S')
     os.makedirs(args.output_dir, exist_ok=True)
 
-    results_path = os.path.join(args.output_dir, f"socialiqa_results_{timestamp}.jsonl")
-    summary_path = os.path.join(args.output_dir, f"summary_{timestamp}.json")
+    # results_path = os.path.join(args.output_dir, f"socialiqa_results_{timestamp}.jsonl")
+    # Hotfix to avoid file's overlapping when crwated at the same time
+    results_path = os.path.join(args.output_dir, f"socialiqa_results_{timestamp}_s{args.start_sample}.jsonl")
+    summary_path = os.path.join(args.output_dir, f"summary_{timestamp}_s{args.start_sample}.json")
+
 
     logger.info("Initializing MetaMind pipeline with local vLLM...")
     llm = DirectVLLM(LOCAL_LLM_CONFIG)
