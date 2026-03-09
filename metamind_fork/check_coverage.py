@@ -13,7 +13,7 @@ all_ids = set()
 
 for f in files:
     ids = []
-    with open(f) as fp:
+    with open(f, encoding='utf-8', errors='ignore') as fp:
         for line in fp:
             try:
                 d = json.loads(line)
