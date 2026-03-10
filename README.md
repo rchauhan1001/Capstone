@@ -39,30 +39,26 @@ Data generation runs on a compute cluster due to the high per-sample cost of the
 The vanilla MetaMind framework is powerful but expensive. Running it on a 120B OpenAI model incurs **~50 seconds per sample** due to ~11 chained model calls per question. This took us a long time to prepare the dataset and also makes the vanilla framework impractical for real-time applications or resource-constrained settings.
 
 ```bash
-# From the repo root
-cd metamind_fork
-python run_socialIQA_cluster.py \
-    --dataset_path ../data/socialiqa_train.jsonl \
-    --output_path ../data/distillation_output.jsonl \
-    --batch_size 10
+python run_socialiqa_cluster.py \
+  --dev_path "/scratch/<username>/socialiqa-train-dev/dev.jsonl" \
+  --labels_path "/scratch/<username>/socialiqa-train-dev/dev-labels.lst" \
+  --output_dir "/scratch/<username>/results" \
+  --max_samples 1000
 ```
 
 ---
 
 ## Running SFT Training
 
-A preliminary training pipeline is available for testing on a small data sample:
+A preliminary training pipeline is available under the training_phase folder:
 
 ```bash
-cd training_under4_facce
-python train.py \
-    --data_path ../data/distillation_output.jsonl \
-    --model_name meta-llama/Meta-Llama-3-8B \
-    --output_dir ./checkpoints \
-    --epochs 3
+python dataloader.py \
+  --input_file "/scratch/<username>/results/socialiqa_results_20260304_111247.jsonl" \
+  --output_file "/scratch/<username>/results/training_data.jsonl"
 ```
 
-> **Status:** Full SFT training will begin once distillation data generation is complete.
+> **Status:** Full SFT training will begin once distillation data generation is complete. We intend too further improve it via reinforcement learning in later stages.
 
 ---
 
