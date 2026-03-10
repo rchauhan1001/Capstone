@@ -24,6 +24,10 @@ with open(args.input_file, "r") as f_in, \
             final_response = record["final_response"]
             hypothesis_dict = record["selected_hypothesis"]
             hypothesis = hypothesis_dict["explanation"]
+            if hypothesis.startswith("(Refined by DomainAgent)"):
+                print(hypothesis)
+                hypothesis = hypothesis[len("(Refined by DomainAgent) "):]
+                print("-", hypothesis)
             hypothesis_type = hypothesis_dict["type"]
 
             prompt_versions = [prompt_v1, prompt_v2, prompt_v3, prompt_v4]
