@@ -72,4 +72,4 @@ python dataloader.py \
 
 ## Team
 
-*Members: Eitan Laredo，Qihui Fan, Roshan Chouhan，and Tianrui Chen*
+*Members: Eitan Laredo, Qihui Fan, Roshan Chouhan, and Tianrui Chen*

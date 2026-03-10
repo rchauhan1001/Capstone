@@ -1,0 +1,16 @@
+# basics
+pandas
+tqdm
+# LLM
+openai
+google-generativeai
+anthropic
+# env
+python-dotenv
+flask
+flask-cors
+vllm
+# training
+transformers
+accelerate
+datasets
