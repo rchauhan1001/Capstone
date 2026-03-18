@@ -1,6 +1,6 @@
 """
 Cluster runner for MetaMind on Social IQA dataset.
-Uses  DirectvLLM interface directly serving gpt-oss-120b with local inference. 
+Uses local vLLM server serving gpt-oss-120b.
 
 Usage:
     python run_socialiqa_cluster.py --max_samples 5

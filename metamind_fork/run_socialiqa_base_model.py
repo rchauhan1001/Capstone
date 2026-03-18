@@ -1,21 +1,19 @@
 """
-Cluster runner for MetaMind on Social IQA dataset.
-Uses  DirectvLLM interface directly serving gpt-oss-120b with local inference. 
+Cluster runner for Base Model (gpt-oss-20b) on Social IQA dataset.
+Uses local vLLM server serving gpt-oss-20b.
 
 Usage:
-    python run_socialiqa_cluster.py --max_samples 5
-    python run_socialiqa_cluster.py --start_sample 663 --max_samples 1000
+    python run_socialiqa_base_model.py --max_samples 5
 """
 
 import json
-import re
 import time
 import os
 import argparse
 import logging
 
 from config import TOM_AGENT_CONFIG, DOMAIN_AGENT_CONFIG, RESPONSE_AGENT_CONFIG
-from llm_interface import DirectVLLM
+from llm_interface import LocalVLLM
 from memory import SocialMemory
 from agents import ToMAgent, DomainAgent, ResponseAgent
 from utils.helpers import setup_logger
@@ -27,6 +25,7 @@ SCRATCH = os.environ.get("SCRATCH", f"/scratch/{os.environ.get('USER', 'laredo.e
 LOCAL_LLM_CONFIG = {
     # "model_path": f"{SCRATCH}/models/gpt-oss-120b-hf",   # ADD THIS
     # "model_name": "openai/gpt-oss-120b",
+    # USE 20B MODEL
     "model_path": f"{SCRATCH}/models/gpt-oss-20b-hf",
     "model_name": "openai/gpt-oss-20b",
     "default_max_tokens": 2048,
@@ -68,64 +67,66 @@ def build_user_input(sample):
         f"  C: {sample['answerC']}\n"
         f"\nWhich answer (A, B, or C) is most appropriate? "
         f"Explain your reasoning about the social situation, "
-        f'then finalize your answer with "ANSWER: <letter>".'
+        f"then state your final answer."
     )
 
 
 def extract_answer(response_text):
-    m = re.search(r'ANSWER:\s*([ABC])', response_text.strip().upper())
-    return m.group(1) if m else "UNKNOWN"
+    text = response_text.strip().upper()
+    last_line = text.strip().split('\n')[-1]
+    for letter in ['A', 'B', 'C']:
+        if letter in last_line and len(last_line) < 50:
+            return letter
+    for pattern in ['FINAL ANSWER: ', 'ANSWER: ', 'THE ANSWER IS ', 'I CHOOSE ']:
+        if pattern in text:
+            after = text.split(pattern)[-1].strip()
+            if after and after[0] in 'ABC':
+                return after[0]
+    for char in reversed(text):
+        if char in 'ABC':
+            return char
+    return "UNKNOWN"
 
 
 def run(args):
     timestamp = time.strftime('%Y%m%d_%H%M%S')
     os.makedirs(args.output_dir, exist_ok=True)
 
-    # results_path = os.path.join(args.output_dir, f"socialiqa_results_{timestamp}.jsonl")
-    # Hotfix to avoid file's overlapping when crwated at the same time
-    results_path = os.path.join(args.output_dir, f"socialiqa_results_{timestamp}_s{args.start_sample}.jsonl")
-    summary_path = os.path.join(args.output_dir, f"summary_{timestamp}_s{args.start_sample}.json")
+    results_path = os.path.join(args.output_dir, f"socialiqa_results_{timestamp}.jsonl")
+    summary_path = os.path.join(args.output_dir, f"summary_{timestamp}.json")
 
-
+    # --- Initialize with LocalVLLM ---
     logger.info("Initializing MetaMind pipeline with local vLLM...")
-    llm = DirectVLLM(LOCAL_LLM_CONFIG)
+    llm = LocalVLLM(LOCAL_LLM_CONFIG)
 
     social_memory = SocialMemory(llm_interface=llm)
     tom_agent = ToMAgent(llm_interface=llm, social_memory_interface=social_memory, config=TOM_AGENT_CONFIG)
     domain_agent = DomainAgent(llm_interface=llm, social_memory_interface=social_memory, config=DOMAIN_AGENT_CONFIG)
     response_agent = ResponseAgent(llm_interface=llm, config=RESPONSE_AGENT_CONFIG)
 
-    logger.info(f"Model: {LOCAL_LLM_CONFIG['model_name']} @ {LOCAL_LLM_CONFIG['model_path']}")
+    logger.info(f"Model: {LOCAL_LLM_CONFIG['model_name']} @ {LOCAL_LLM_CONFIG['base_url']}")
     logger.info(f"Inference log: {LOCAL_LLM_CONFIG['log_path']}")
     logger.info(f"Results: {results_path}")
 
+    # --- Load data ---
     samples, labels = load_socialiqa(args.dev_path, args.labels_path)
-
-    # Apply start_sample offset
-    start_idx = args.start_sample - 1  # convert to 0-based
-    if start_idx > 0:
-        samples = samples[start_idx:]
-        labels = labels[start_idx:]
-        logger.info(f"Starting from sample {args.start_sample} (skipping {start_idx})")
 
     if args.max_samples:
         samples = samples[:args.max_samples]
         labels = labels[:args.max_samples]
-        logger.info(f"Processing up to {args.max_samples} samples from start point")
+        logger.info(f"Limited to {args.max_samples} samples")
 
-    logger.info(f"Total samples to process: {len(samples)}")
-
+    # --- Process ---
     correct = 0
     total = 0
     label_map = {1: "A", 2: "B", 3: "C"}
 
     with open(results_path, "w") as fout:
         for idx, (sample, gold_label_num) in enumerate(zip(samples, labels), 1):
-            actual_sample_id = idx + start_idx
             gold_answer = label_map[gold_label_num]
             user_input = build_user_input(sample)
 
-            logger.info(f"--- Sample {actual_sample_id} (batch {idx}/{len(samples)}) (Gold: {gold_answer}) ---")
+            logger.info(f"--- Sample {idx}/{len(samples)} (Gold: {gold_answer}) ---")
             start = time.time()
 
             try:
@@ -159,7 +160,7 @@ def run(args):
                 elapsed = time.time() - start
 
                 result = {
-                    "sample_id": actual_sample_id,
+                    "sample_id": idx,
                     "input": sample,
                     "gold_answer": gold_answer,
                     "predicted_answer": predicted,
@@ -183,10 +184,10 @@ def run(args):
 
             except Exception as e:
                 elapsed = time.time() - start
-                logger.error(f"  Error on sample {actual_sample_id}: {e}", exc_info=True)
+                logger.error(f"  Error on sample {idx}: {e}", exc_info=True)
                 total += 1
                 fout.write(json.dumps({
-                    "sample_id": actual_sample_id, "input": sample, "gold_answer": gold_answer,
+                    "sample_id": idx, "input": sample, "gold_answer": gold_answer,
                     "error": str(e), "elapsed_seconds": round(elapsed, 2),
                 }, ensure_ascii=False) + "\n")
                 fout.flush()
@@ -195,7 +196,6 @@ def run(args):
     summary = {
         "timestamp": timestamp,
         "model": LOCAL_LLM_CONFIG["model_name"],
-        "start_sample": args.start_sample,
         "total_samples": total,
         "correct": correct,
         "accuracy": round(accuracy, 4),
@@ -220,6 +220,5 @@ if __name__ == "__main__":
     parser.add_argument("--labels_path", type=str, default=DEFAULT_LABELS_PATH)
     parser.add_argument("--output_dir", type=str, default=DEFAULT_OUTPUT_DIR)
     parser.add_argument("--max_samples", type=int, default=None)
-    parser.add_argument("--start_sample", type=int, default=1, help="1-based sample index to start from")
     args = parser.parse_args()
     run(args)
