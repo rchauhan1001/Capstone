@@ -9,7 +9,7 @@ Usage:
 import json
 import os
 
-METAMIND_RESULTS_PATH = "/Users/eitan/Documents/School related/Capstone Project/metamind_fork/results/all_results_combined_20260317_153401.jsonl"
+METAMIND_RESULTS_PATH = "/Users/eitan/Documents/School related/Capstone Project/metamind_fork/results/all_results_combined_20260320_100951.jsonl"
 SOCIALIQA_DIR         = "/Users/eitan/Documents/School related/Capstone Project/metamind_fork/socialiqa-train-dev"
 TRAIN_SAMPLES_PATH    = os.path.join(SOCIALIQA_DIR, "train.jsonl")
 TRAIN_LABELS_PATH     = os.path.join(SOCIALIQA_DIR, "train-labels.lst")

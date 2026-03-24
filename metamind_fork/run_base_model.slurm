@@ -31,6 +31,6 @@ python run_socialiqa_base_model.py \
     --labels_path $SCRATCH/socialiqa-train-dev/basemodel_samples_labels.lst \
     --output_dir $RESULTS_DIR \
     --start_sample ${START_SAMPLE:-1} \
-    --max_samples ${MAX_SAMPLES:-7457}
+    --max_samples ${MAX_SAMPLES:-13713}
 
 echo "Done! Results in $RESULTS_DIR"
