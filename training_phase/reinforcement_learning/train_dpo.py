@@ -2,7 +2,7 @@
 DPO Training Script for Qwen 2.5 7B — Single Node / Single GPU
 ----------------------------------------------------------------
 1. Validates all paths upfront before loading anything
-2. Loads Qwen 2.5 7B Instruct, merges teammate's SFT LoRA
+2. Loads Qwen 2.5 7B Instruct, merges SFT model LoRA
 3. Applies a fresh LoRA for DPO training
 4. Trains with TRL's DPOTrainer
 5. Checkpoints every N steps + on SIGTERM (Slurm 8hr limit)
@@ -215,7 +215,7 @@ def main():
         sys.exit(1)
 
     gpu_name = torch.cuda.get_device_name(0)
-    gpu_mem = torch.cuda.get_device_properties(0).total_mem / 1e9
+    gpu_mem = torch.cuda.get_device_properties(0).total_memory / 1e9
     print(f"GPU: {gpu_name} ({gpu_mem:.1f} GB)")
 
     # ── Load dataset ─────────────────────────────────────────────────────
