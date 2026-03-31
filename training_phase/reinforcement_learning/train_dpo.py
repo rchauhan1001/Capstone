@@ -2,7 +2,7 @@
 DPO Training Script for Qwen 2.5 7B — Single Node / Single GPU
 ----------------------------------------------------------------
 1. Validates all paths upfront before loading anything
-2. Loads Qwen 2.5 7B Instruct, merges SFT model LoRA
+2. Loads Qwen 2.5 7B Instruct, merges teammate's SFT LoRA
 3. Applies a fresh LoRA for DPO training
 4. Trains with TRL's DPOTrainer
 5. Checkpoints every N steps + on SIGTERM (Slurm 8hr limit)
@@ -160,7 +160,7 @@ def load_and_merge_sft():
         print(f"Loading cached merged SFT model from {MERGED_SFT_PATH}")
         model = AutoModelForCausalLM.from_pretrained(
             MERGED_SFT_PATH,
-            torch_dtype=torch.bfloat16,
+            dtype=torch.bfloat16,
             attn_implementation=attn_impl,
         )
         tokenizer = AutoTokenizer.from_pretrained(MERGED_SFT_PATH)
@@ -170,7 +170,7 @@ def load_and_merge_sft():
     print(f"Loading base model: {BASE_MODEL_PATH}")
     model = AutoModelForCausalLM.from_pretrained(
         BASE_MODEL_PATH,
-        torch_dtype=torch.bfloat16,
+        dtype=torch.bfloat16,
         attn_implementation=attn_impl,
     )
     tokenizer = AutoTokenizer.from_pretrained(BASE_MODEL_PATH)
@@ -250,7 +250,6 @@ def main():
         gradient_accumulation_steps=GRADIENT_ACCUMULATION,
         warmup_ratio=WARMUP_RATIO,
         max_length=MAX_LENGTH,
-        max_prompt_length=MAX_PROMPT_LENGTH,
         bf16=True,
         gradient_checkpointing=True,
         logging_steps=LOGGING_STEPS,
