@@ -11,3 +11,8 @@ __pycache__/
 __pycache__/
 
 .env
+.DS_Store
+
+training_phase/reinforcement_learning/grid_search_results
+
+training_phase/reinforcement_learning/final_model_beta0.3_lr5e-05

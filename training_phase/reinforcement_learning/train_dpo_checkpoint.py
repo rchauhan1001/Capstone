@@ -5,12 +5,13 @@ DPO Training Script for Qwen 2.5 7B — Single Node / Single GPU
 2. Loads Qwen 2.5 7B Instruct, merges teammate's SFT LoRA
 3. Applies a fresh LoRA for DPO training
 4. Trains with TRL's DPOTrainer
-5. Checkpoints every N steps + on SIGTERM (Slurm 8hr limit)
+5. Saves checkpoints every SAVE_STEPS for early stopping analysis
+6. Checkpoints on SIGTERM (Slurm 8hr limit)
 
 Usage:
     python train_dpo.py
     python train_dpo.py --resume_from_checkpoint
-    python train_dpo.py --eval_split 0.15
+    python train_dpo.py --beta 2.0 --lr 5e-6
 """
 
 import os
@@ -43,18 +44,17 @@ os.environ["HF_HOME"] = "/scratch/laredo.ei/.cache/huggingface"
 EVAL_SPLIT = 0.1
 SPLIT_SEED = 42
 
-DPO_BETA = 0.3
-LEARNING_RATE = 5e-05
+DPO_BETA = 1.0
+LEARNING_RATE = 5e-6
 NUM_EPOCHS = 1
 PER_DEVICE_BATCH_SIZE = 2
 GRADIENT_ACCUMULATION = 8   # Effective batch = 2 * 8 = 16
 WARMUP_RATIO = 0.1
-MAX_LENGTH = 1024
-MAX_PROMPT_LENGTH = 512
+MAX_LENGTH = 512
 
-SAVE_STEPS = 200
-SAVE_TOTAL_LIMIT = 3
-EVAL_STEPS = 200
+SAVE_STEPS = 50
+SAVE_TOTAL_LIMIT = 15       # keep all checkpoints for early stopping analysis
+EVAL_STEPS = 50             # eval every 50 steps so we can find the sweet spot
 LOGGING_STEPS = 10
 
 LORA_R = 16
@@ -201,11 +201,25 @@ def main():
                         help="Resume from the latest checkpoint in OUTPUT_DIR")
     parser.add_argument("--eval_split", type=float, default=EVAL_SPLIT,
                         help=f"Fraction held out for eval (default: {EVAL_SPLIT})")
+    parser.add_argument("--beta", type=float, default=DPO_BETA,
+                        help=f"DPO beta (default: {DPO_BETA})")
+    parser.add_argument("--lr", type=float, default=LEARNING_RATE,
+                        help=f"Learning rate (default: {LEARNING_RATE})")
     args = parser.parse_args()
+
+    # Use CLI args if provided, otherwise defaults
+    beta = args.beta
+    lr = args.lr
+    run_tag = f"beta{beta}_lr{lr}"
+
+    # Set output dir per config so checkpoints don't collide
+    run_output_dir = os.path.join(OUTPUT_DIR, run_tag)
+    os.makedirs(run_output_dir, exist_ok=True)
 
     # ── Validate before doing anything expensive ─────────────────────────
     print("=" * 60)
     print("DPO Training — Single GPU")
+    print(f"Config: {run_tag}")
     print("=" * 60)
     validate_paths()
 
@@ -241,9 +255,9 @@ def main():
 
     # ── Training config ──────────────────────────────────────────────────
     training_args = DPOConfig(
-        output_dir=OUTPUT_DIR,
-        beta=DPO_BETA,
-        learning_rate=LEARNING_RATE,
+        output_dir=run_output_dir,
+        beta=beta,
+        learning_rate=lr,
         num_train_epochs=NUM_EPOCHS,
         per_device_train_batch_size=PER_DEVICE_BATCH_SIZE,
         per_device_eval_batch_size=PER_DEVICE_BATCH_SIZE,
@@ -257,11 +271,9 @@ def main():
         save_total_limit=SAVE_TOTAL_LIMIT,
         eval_strategy="steps",
         eval_steps=EVAL_STEPS,
-        load_best_model_at_end=True,
-        metric_for_best_model="eval_loss",
-        greater_is_better=False,
+        load_best_model_at_end=False,  # keep all checkpoints for manual selection
         report_to="wandb",
-        run_name="qwen25-7b-dpo-socialiqa",
+        run_name=f"dpo-{run_tag}",
         dataloader_num_workers=4,
         remove_unused_columns=False,
     )
@@ -284,8 +296,8 @@ def main():
     print("Starting DPO Training")
     print("=" * 60)
     print(f"  GPU:                {gpu_name}")
-    print(f"  Beta:               {DPO_BETA}")
-    print(f"  Learning rate:      {LEARNING_RATE}")
+    print(f"  Beta:               {beta}")
+    print(f"  Learning rate:      {lr}")
     print(f"  Epochs:             {NUM_EPOCHS}")
     print(f"  Batch size:         {PER_DEVICE_BATCH_SIZE}")
     print(f"  Grad accumulation:  {GRADIENT_ACCUMULATION}")
@@ -293,26 +305,49 @@ def main():
     print(f"  Estimated steps:    {total_steps}")
     print(f"  Train samples:      {len(train_ds)}")
     print(f"  Eval samples:       {len(eval_ds)}")
-    print(f"  Save every:         {SAVE_STEPS} steps")
-    print(f"  Eval every:         {EVAL_STEPS} steps")
+    print(f"  Save/Eval every:    {SAVE_STEPS} steps")
+    print(f"  Output dir:         {run_output_dir}")
     print("=" * 60)
 
     # ── Resume handling ──────────────────────────────────────────────────
     checkpoint = None
     if args.resume_from_checkpoint:
-        checkpoint = True  # Let HF Trainer find the latest checkpoint itself
+        checkpoint = True
         print("Resume requested — trainer will find latest checkpoint.")
 
     # ── Train ────────────────────────────────────────────────────────────
     trainer.train(resume_from_checkpoint=checkpoint)
 
-    # ── Save final model ─────────────────────────────────────────────────
-    final_path = os.path.join(OUTPUT_DIR, "final_model_beta0.3_lr5e-05")
-    print(f"\nSaving final model to: {final_path}")
-    trainer.save_model(final_path)
-    tokenizer.save_pretrained(final_path)
+    # ── Save eval history for analysis ───────────────────────────────────
+    eval_history = [
+        entry for entry in trainer.state.log_history
+        if "eval_loss" in entry
+    ]
 
-    print("Done.")
+    history_path = os.path.join(run_output_dir, "eval_history.json")
+    with open(history_path, "w") as f:
+        json.dump(eval_history, f, indent=2)
+    print(f"\nEval history saved to: {history_path}")
+
+    # ── Print eval summary for checkpoint selection ──────────────────────
+    print("\n" + "=" * 60)
+    print("EVAL HISTORY — use this to pick your checkpoint")
+    print("=" * 60)
+    print(f"{'Step':<8} {'Loss':<12} {'Margins':<12} {'Accuracy':<12} {'Chosen LogP':<14} {'Rejected LogP':<14}")
+    print("-" * 72)
+    for entry in eval_history:
+        print(f"{entry.get('step', '?'):<8} "
+              f"{entry.get('eval_loss', 0):<12.4f} "
+              f"{entry.get('eval_rewards/margins', 0):<12.3f} "
+              f"{entry.get('eval_rewards/accuracies', 0):<12.4f} "
+              f"{entry.get('eval_logps/chosen', 0):<14.2f} "
+              f"{entry.get('eval_logps/rejected', 0):<14.2f}")
+    print("=" * 60)
+    print(f"\nCheckpoints saved in: {run_output_dir}/")
+    print("Look for margins in 1.0-2.0 range with balanced chosen/rejected log-probs.")
+    print("Then use that checkpoint for inference eval.")
+
+    print("\nDone.")
 
 
 if __name__ == "__main__":
