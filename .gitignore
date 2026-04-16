@@ -16,3 +16,11 @@ __pycache__/
 training_phase/reinforcement_learning/grid_search_results
 
 training_phase/reinforcement_learning/final_model_beta0.3_lr5e-05
+
+demo/models
+
+/Users/eitan/Documents/School related/Capstone Project/demo/Modelfile_qwen_merged
+
+demo/Modelfile_qwen_base
+
+demo/qwen_tensor_swap.ipynb

@@ -9,7 +9,7 @@ DPO Training Script for Qwen 2.5 7B — Single Node / Single GPU
 6. Checkpoints on SIGTERM (Slurm 8hr limit)
 
 Usage:
-    python train_dpo.py
+    python train_dpo_checkpoint.py
     python train_dpo.py --resume_from_checkpoint
     python train_dpo.py --beta 2.0 --lr 5e-6
 """
